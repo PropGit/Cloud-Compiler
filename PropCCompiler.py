@@ -5,6 +5,7 @@ from werkzeug.datastructures import FileStorage
 import os
 import subprocess
 import re
+import math
 from tempfile import NamedTemporaryFile, mkdtemp
 
 __author__ = 'Michel'
@@ -201,6 +202,9 @@ class PropCCompiler:
         if success and self.compile_actions[action]["return-binary"]:
             with open(binary_file.name) as bf:
                 base64binary = base64.b64encode(bf.read())
+            # todo Finish this.  Can not get Propeller Application Image size from size of binary_file (that is a .elf
+            # todo file) - instead, need to parse open the binary_file.name .elf file and parse it to calculate the size
+            binary_file_size = os.path.getsize(binary_file.name)
 
         if success:
             os.remove(binary_file.name)
@@ -273,3 +277,12 @@ class PropCCompiler:
         executing_data.append("-Wl,--end-group")
 
         return executing_data
+
+    def convert_size(size_bytes):
+        if size_bytes == 0:
+            return "0 B"
+        size_name = ("B", "kB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB")
+        i = int(math.floor(math.log(size_bytes, 1024)))
+        p = math.pow(1024, i)
+        s = round(size_bytes / p, 2)
+        return "%s %s" % (s, size_name[i])
